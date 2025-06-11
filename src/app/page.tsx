@@ -7,7 +7,18 @@ import {
 } from 'lucide-react';
 
 export default function Home() {
-  const [formData, setFormData] = useState({
+  interface FormData {
+    adults: string;
+    children: string;
+    dietaryRestrictions: string[];
+    budget: string;
+    cookingTime: string;
+    cuisinePreferences: string[];
+    skillLevel: string;
+    [key: string]: string | string[]; // Index signature to allow string indexing
+  }
+  
+  const [formData, setFormData] = useState<FormData>({
     adults: '',
     children: '',
     dietaryRestrictions: [],
@@ -21,11 +32,11 @@ export default function Home() {
   const [email, setEmail] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
 
-  const handleFormUpdate = (field: string, value: any) => {
+  const handleFormUpdate = (field: keyof FormData, value: string | string[]) => {
     setFormData({...formData, [field]: value});
   };
 
-  const toggleArrayField = (field: string, value: string) => {
+  const toggleArrayField = (field: keyof FormData, value: string) => {
     const current = formData[field] as string[];
     if (current.includes(value)) {
       setFormData({...formData, [field]: current.filter(item => item !== value)});
