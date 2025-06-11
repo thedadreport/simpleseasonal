@@ -147,6 +147,7 @@ model MealPlan {
   startDate         DateTime
   endDate           DateTime
   pdfUrl            String?
+  content           String?          @db.Text
   
   // User interaction data
   isFavorite        Boolean          @default(false)
