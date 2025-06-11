@@ -18,7 +18,10 @@ export async function generateRecipePDF({
 }): Promise<string> {
   try {
     // Create the PDF document
-    const pdfDocument = <RecipeCardPDF recipe={recipe} generatedDate={new Date()} />;
+    const pdfDocument = React.createElement(RecipeCardPDF, {
+      recipe: recipe,
+      generatedDate: new Date()
+    });
     const pdfBuffer = await pdf(pdfDocument).toBuffer();
 
     // Generate a unique filename
@@ -53,14 +56,12 @@ export async function generateMealPlanPDF({
   try {
     // Create the PDF document
     const title = `${seasonalFocus} 5-Day Meal Plan`;
-    const pdfDocument = (
-      <MealPlanPDF 
-        mealPlan={mealPlan} 
-        generatedDate={new Date()} 
-        title={title}
-        seasonalFocus={seasonalFocus}
-      />
-    );
+    const pdfDocument = React.createElement(MealPlanPDF, {
+      mealPlan: mealPlan,
+      generatedDate: new Date(),
+      title: title,
+      seasonalFocus: seasonalFocus
+    });
     const pdfBuffer = await pdf(pdfDocument).toBuffer();
 
     // Generate a unique filename
