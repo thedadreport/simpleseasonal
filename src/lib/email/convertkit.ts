@@ -318,6 +318,22 @@ export async function trackRecipeDownload(
   cookingSkill: string = 'intermediate'
 ): Promise<number | null> {
   try {
+    // Initialize tags array
+    const tags = [TAGS.RECIPE_DOWNLOAD, TAGS.FREE_USER];
+    
+    // Add seasonal interest tag if appropriate
+    if (recipe.seasonalNote) {
+      if (recipe.seasonalNote.toLowerCase().includes('summer')) {
+        tags.push(TAGS.SUMMER_INTEREST);
+      } else if (recipe.seasonalNote.toLowerCase().includes('fall')) {
+        tags.push(TAGS.FALL_INTEREST);
+      } else if (recipe.seasonalNote.toLowerCase().includes('winter')) {
+        tags.push(TAGS.WINTER_INTEREST);
+      } else if (recipe.seasonalNote.toLowerCase().includes('spring')) {
+        tags.push(TAGS.SPRING_INTEREST);
+      }
+    }
+    
     // Create or update the subscriber
     const subscriber: Subscriber = {
       email,
@@ -330,21 +346,8 @@ export async function trackRecipeDownload(
         [FIELDS.LAST_RECIPE_DOWNLOAD]: recipe.name,
         [FIELDS.SEASONAL_PREFERENCE]: recipe.seasonalNote || '',
       },
-      tags: [TAGS.RECIPE_DOWNLOAD, TAGS.FREE_USER],
+      tags: tags,
     };
-    
-    // Add seasonal interest tag if appropriate
-    if (recipe.seasonalNote) {
-      if (recipe.seasonalNote.toLowerCase().includes('summer')) {
-        subscriber.tags.push(TAGS.SUMMER_INTEREST);
-      } else if (recipe.seasonalNote.toLowerCase().includes('fall')) {
-        subscriber.tags.push(TAGS.FALL_INTEREST);
-      } else if (recipe.seasonalNote.toLowerCase().includes('winter')) {
-        subscriber.tags.push(TAGS.WINTER_INTEREST);
-      } else if (recipe.seasonalNote.toLowerCase().includes('spring')) {
-        subscriber.tags.push(TAGS.SPRING_INTEREST);
-      }
-    }
     
     const subscriberId = await addOrUpdateSubscriber(subscriber);
     
@@ -373,6 +376,20 @@ export async function trackMealPlanDownload(
   budget: string = 'moderate'
 ): Promise<number | null> {
   try {
+    // Initialize tags array
+    const tags = [TAGS.MEAL_PLAN_DOWNLOAD, TAGS.FREE_USER];
+    
+    // Add seasonal interest tag
+    if (seasonalFocus.toLowerCase().includes('summer')) {
+      tags.push(TAGS.SUMMER_INTEREST);
+    } else if (seasonalFocus.toLowerCase().includes('fall')) {
+      tags.push(TAGS.FALL_INTEREST);
+    } else if (seasonalFocus.toLowerCase().includes('winter')) {
+      tags.push(TAGS.WINTER_INTEREST);
+    } else if (seasonalFocus.toLowerCase().includes('spring')) {
+      tags.push(TAGS.SPRING_INTEREST);
+    }
+    
     // Create or update the subscriber
     const subscriber: Subscriber = {
       email,
@@ -385,19 +402,8 @@ export async function trackMealPlanDownload(
         [FIELDS.LAST_MEAL_PLAN_DOWNLOAD]: seasonalFocus,
         [FIELDS.SEASONAL_PREFERENCE]: seasonalFocus,
       },
-      tags: [TAGS.MEAL_PLAN_DOWNLOAD, TAGS.FREE_USER],
+      tags: tags,
     };
-    
-    // Add seasonal interest tag
-    if (seasonalFocus.toLowerCase().includes('summer')) {
-      subscriber.tags.push(TAGS.SUMMER_INTEREST);
-    } else if (seasonalFocus.toLowerCase().includes('fall')) {
-      subscriber.tags.push(TAGS.FALL_INTEREST);
-    } else if (seasonalFocus.toLowerCase().includes('winter')) {
-      subscriber.tags.push(TAGS.WINTER_INTEREST);
-    } else if (seasonalFocus.toLowerCase().includes('spring')) {
-      subscriber.tags.push(TAGS.SPRING_INTEREST);
-    }
     
     const subscriberId = await addOrUpdateSubscriber(subscriber);
     
