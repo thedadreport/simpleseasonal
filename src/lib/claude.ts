@@ -36,7 +36,7 @@ const PREMIUM_MODEL = 'claude-3-opus-20240229';
 
 // Initialize Claude client
 const anthropic = new Anthropic({
-  apiKey: process.env.CLAUDE_API_KEY,
+  apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
 // System prompts
@@ -122,7 +122,13 @@ export async function generateRecipe(params: {
       temperature: 0.7,
     });
 
-    const content = message.content[0].text;
+    // Handle different content block types
+    const contentBlock = message.content[0];
+    if (!contentBlock || contentBlock.type !== 'text') {
+      throw new Error('Unexpected response format from Claude API');
+    }
+    
+    const content = contentBlock.text;
     // Extract the JSON from the response
     const jsonMatch = content.match(/({[\s\S]*})/);
     
@@ -216,7 +222,13 @@ export async function generateMealPlan(params: {
       temperature: 0.7,
     });
 
-    const content = message.content[0].text;
+    // Handle different content block types
+    const contentBlock = message.content[0];
+    if (!contentBlock || contentBlock.type !== 'text') {
+      throw new Error('Unexpected response format from Claude API');
+    }
+    
+    const content = contentBlock.text;
     // Extract the JSON from the response
     const jsonMatch = content.match(/({[\s\S]*})/);
     
