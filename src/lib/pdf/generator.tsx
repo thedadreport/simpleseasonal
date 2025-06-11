@@ -1,3 +1,4 @@
+import React from 'react';
 import { pdf } from '@react-pdf/renderer';
 import { put, del, list } from '@vercel/blob';
 import { Recipe, MealPlan } from '@/lib/claude';
