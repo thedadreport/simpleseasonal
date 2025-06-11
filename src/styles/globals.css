@@ -1,0 +1,35 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --sage-green: #94a89a;
+  --terracotta: #dd9a7c;
+  --cream: #f8f5f0;
+  --light-sage: #e8ede9;
+  --sage-border: #d1ddd3;
+}
+
+@layer base {
+  body {
+    @apply bg-cream text-gray-800;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    @apply bg-sage-green hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded-md transition-all;
+  }
+  
+  .btn-secondary {
+    @apply bg-terracotta hover:bg-opacity-90 text-white font-medium py-2 px-4 rounded-md transition-all;
+  }
+  
+  .card {
+    @apply bg-white p-6 rounded-lg shadow-md border border-sage-border;
+  }
+  
+  .input {
+    @apply w-full p-2 border border-sage-border rounded-md focus:outline-none focus:ring-2 focus:ring-sage-green;
+  }
+}

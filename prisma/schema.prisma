@@ -1,0 +1,267 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// NextAuth Models
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String? @db.Text
+  access_token      String? @db.Text
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String? @db.Text
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@index([userId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+model User {
+  id                  String            @id @default(cuid())
+  name                String?
+  email               String            @unique
+  emailVerified       DateTime?
+  image               String?
+  
+  // Subscription and usage tracking
+  subscriptionTier    SubscriptionTier  @default(FREE)
+  freeGenerationsUsed Int               @default(0)
+  freeGenerationsReset DateTime         @default(now())
+  
+  // Relations
+  accounts            Account[]
+  sessions            Session[]
+  purchases           Purchase[]
+  mealPlans           MealPlan[]
+  userPreferences     UserPreferences?
+  pdfDocuments        PDFDocument[]
+  
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+
+  @@map("users")
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+  @@map("verification_tokens")
+}
+
+// Application Models
+model UserPreferences {
+  id                  String    @id @default(cuid())
+  userId              String    @unique
+  
+  // Family composition
+  familySize          Int       @default(2)
+  childrenCount       Int       @default(0)
+  
+  // Food preferences
+  dietaryRestrictions String[]  @default([])
+  allergies           String[]  @default([])
+  cuisinePreferences  String[]  @default([])
+  dislikedIngredients String[]  @default([])
+  
+  // Cooking preferences
+  cookingTime         String?   // e.g., "quick", "medium", "slow"
+  skillLevel          String?   // e.g., "beginner", "intermediate", "advanced"
+  mealPrepDay         String?   // preferred day for meal prep
+  
+  // Budget
+  weeklyBudget        String?
+  
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+  
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@map("user_preferences")
+}
+
+model Recipe {
+  id                String           @id @default(cuid())
+  title             String
+  description       String
+  ingredients       String[]
+  instructions      String[]
+  cookTime          Int              // in minutes
+  prepTime          Int              // in minutes
+  servings          Int
+  cuisineType       String?
+  dietaryCategories String[]         @default([])
+  calories          Int?
+  protein           Int?             // in grams
+  carbs             Int?             // in grams
+  fat               Int?             // in grams
+  seasonality       String[]         @default([]) // e.g., "summer", "fall", etc.
+  image             String?
+  
+  mealPlanRecipes   MealPlanRecipe[]
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([cuisineType])
+  @@index([seasonality])
+  @@map("recipes")
+}
+
+model MealPlan {
+  id                String           @id @default(cuid())
+  userId            String
+  title             String
+  description       String?
+  planType          PlanType         @default(MEAL_PLAN)
+  startDate         DateTime
+  endDate           DateTime
+  pdfUrl            String?
+  
+  // User interaction data
+  isFavorite        Boolean          @default(false)
+  notes             String?          @db.Text
+  
+  // Relationships
+  recipes           MealPlanRecipe[]
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([userId, startDate])
+  @@index([userId, createdAt])
+  @@map("meal_plans")
+}
+
+model MealPlanRecipe {
+  id                String           @id @default(cuid())
+  mealPlanId        String
+  recipeId          String
+  dayOfWeek         Int              // 0 = Sunday, 1 = Monday, etc.
+  mealType          String           // breakfast, lunch, dinner, snack
+  
+  mealPlan          MealPlan         @relation(fields: [mealPlanId], references: [id], onDelete: Cascade)
+  recipe            Recipe           @relation(fields: [recipeId], references: [id])
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@unique([mealPlanId, dayOfWeek, mealType])
+  @@index([mealPlanId])
+  @@index([recipeId])
+  @@map("meal_plan_recipes")
+}
+
+model Product {
+  id                String           @id @default(cuid())
+  name              String
+  description       String
+  price             Int              // in cents
+  productType       ProductType      @default(MEAL_PLAN)
+  subscriptionTier  SubscriptionTier?
+  active            Boolean          @default(true)
+  
+  // Relationships
+  purchases         Purchase[]
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@map("products")
+}
+
+model Purchase {
+  id                String           @id @default(cuid())
+  userId            String
+  productId         String
+  stripeId          String           @unique
+  amount            Int              // in cents
+  status            PurchaseStatus   @default(PENDING)
+  
+  // Relationships
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product           Product          @relation(fields: [productId], references: [id])
+  
+  createdAt         DateTime         @default(now())
+  updatedAt         DateTime         @updatedAt
+
+  @@index([userId])
+  @@index([productId])
+  @@map("purchases")
+}
+
+// Enums
+enum SubscriptionTier {
+  FREE
+  PREMIUM
+}
+
+enum PlanType {
+  SINGLE_RECIPE
+  MEAL_PLAN
+}
+
+enum PurchaseStatus {
+  PENDING
+  COMPLETED
+  FAILED
+}
+
+enum ProductType {
+  MEAL_PLAN
+  RECIPE
+  SUBSCRIPTION
+}
+
+model PDFDocument {
+  id                String           @id @default(cuid())
+  userId            String
+  url               String
+  type              PDFType
+  title             String
+  createdAt         DateTime         @default(now())
+  expiresAt         DateTime?        // When this PDF should be deleted
+  
+  // Relationships
+  user              User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  @@index([userId, createdAt])
+  @@index([expiresAt])
+  @@map("pdf_documents")
+}
+
+enum PDFType {
+  RECIPE
+  MEAL_PLAN
+}
